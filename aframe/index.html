@@ -6,8 +6,96 @@
     <meta name="description" content="Basic example for Point Cloud component."></meta>
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script src="js/aframe-pointcloud-component.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", sans-serif;
+      }
+
+      #control-panel {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 10;
+        width: 260px;
+        padding: 12px;
+        border-radius: 10px;
+        background: rgba(17, 24, 39, 0.85);
+        color: #f5f7fa;
+        backdrop-filter: blur(4px);
+      }
+
+      #control-panel h3 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      #control-panel .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      #control-panel button,
+      #control-panel select {
+        border: none;
+        border-radius: 6px;
+        padding: 8px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      #control-panel button {
+        background: #e2e8f0;
+        color: #1f2937;
+      }
+
+      #control-panel button:hover {
+        background: #cbd5e1;
+      }
+
+      #status {
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.3;
+        color: #d0d8e2;
+      }
+    </style>
   </head>
   <body>
+    <div id="control-panel">
+      <h3>Point Cloud Controls</h3>
+      <select id="object-select">
+        <option value="sphere">Sphere</option>
+        <option value="sculpt">Sculpt</option>
+      </select>
+      <div class="row" style="margin-top: 8px;">
+        <button id="load-sphere">Load Sphere</button>
+        <button id="load-sculpt">Load Sculpt</button>
+      </div>
+      <div class="row">
+        <button id="rotate-left">Rotate Left</button>
+        <button id="rotate-right">Rotate Right</button>
+      </div>
+      <div class="row">
+        <button id="move-left">Move Left</button>
+        <button id="move-right">Move Right</button>
+      </div>
+      <div class="row">
+        <button id="move-forward">Move Forward</button>
+        <button id="move-back">Move Back</button>
+      </div>
+      <div class="row">
+        <button id="zoom-in">Zoom In</button>
+        <button id="zoom-out">Zoom Out</button>
+      </div>
+      <div class="row">
+        <button id="reset">Reset Transform</button>
+      </div>
+      <div id="status">Active object: Sphere</div>
+    </div>
+
     <a-scene>
       <a-assets>
         <img id="groundTexture" src="grass.avif">
@@ -18,9 +106,10 @@
       <a-light type="ambient" color="#445451"></a-light>
       <a-light type="point" intensity="2" position="2 4 4"></a-light>
       <a-sky src="windows.jpg"  width="2048" theta-length="90"></a-sky>
-       <!-- <a-sky height="2048" radius="30" src="#skyTexture" theta-length="90" width="2048"></a-sky> -->
+      <!-- <a-sky height="2048" radius="30" src="#skyTexture" theta-length="90" width="2048"></a-sky> -->
       <a-entity laser-controls line="color: red; opacity: 0.75"></a-entity>
       <a-pointcloud 
+        id="sphere"
         scale="0.5 0.5 0.5" 
         position="1.2 1.4 -2.2" 
         src="Sphere.ply" 
@@ -28,7 +117,117 @@
         texture="VGTU-logo.png"
         depthWrite="false">
       </a-pointcloud>
+      <a-pointcloud
+        id="sculpt"
+        visible="false"
+        scale="0.08 0.08 0.08"
+        position="0 0.2 -2.6"
+        rotation="-90 45 0"
+        src="sculpt.ply"
+        size="0.01">
+      </a-pointcloud>
 
     </a-scene>
+
+    <script>
+      (function () {
+        const objects = {
+          sphere: document.querySelector("#sphere"),
+          sculpt: document.querySelector("#sculpt")
+        };
+
+        const defaults = {
+          sphere: {
+            position: "1.2 1.4 -2.2",
+            rotation: "0 0 0",
+            scale: "0.5 0.5 0.5"
+          },
+          sculpt: {
+            position: "0 0.2 -2.6",
+            rotation: "-90 45 0",
+            scale: "0.08 0.08 0.08"
+          }
+        };
+
+        let activeKey = "sphere";
+
+        function getActiveObject() {
+          return objects[activeKey];
+        }
+
+        function updateStatus() {
+          const label = activeKey === "sphere" ? "Sphere" : "Sculpt";
+          document.querySelector("#status").textContent = "Active object: " + label;
+          document.querySelector("#object-select").value = activeKey;
+        }
+
+        function setActiveObject(key) {
+          activeKey = key;
+          Object.keys(objects).forEach(function (name) {
+            objects[name].setAttribute("visible", name === key);
+          });
+          updateStatus();
+        }
+
+        function rotateY(delta) {
+          const obj = getActiveObject();
+          const rot = obj.getAttribute("rotation");
+          obj.setAttribute("rotation", {
+            x: rot.x,
+            y: rot.y + delta,
+            z: rot.z
+          });
+        }
+
+        function move(deltaX, deltaZ) {
+          const obj = getActiveObject();
+          const pos = obj.getAttribute("position");
+          obj.setAttribute("position", {
+            x: pos.x + deltaX,
+            y: pos.y,
+            z: pos.z + deltaZ
+          });
+        }
+
+        function zoom(scaleFactor) {
+          const obj = getActiveObject();
+          const sc = obj.getAttribute("scale");
+          const nextX = Math.max(0.02, sc.x * scaleFactor);
+          const nextY = Math.max(0.02, sc.y * scaleFactor);
+          const nextZ = Math.max(0.02, sc.z * scaleFactor);
+          obj.setAttribute("scale", { x: nextX, y: nextY, z: nextZ });
+        }
+
+        function resetTransform() {
+          const obj = getActiveObject();
+          obj.setAttribute("position", defaults[activeKey].position);
+          obj.setAttribute("rotation", defaults[activeKey].rotation);
+          obj.setAttribute("scale", defaults[activeKey].scale);
+        }
+
+        document.querySelector("#object-select").addEventListener("change", function (event) {
+          setActiveObject(event.target.value);
+        });
+
+        document.querySelector("#load-sphere").addEventListener("click", function () {
+          setActiveObject("sphere");
+        });
+        document.querySelector("#load-sculpt").addEventListener("click", function () {
+          setActiveObject("sculpt");
+        });
+
+        document.querySelector("#rotate-left").addEventListener("click", function () { rotateY(-15); });
+        document.querySelector("#rotate-right").addEventListener("click", function () { rotateY(15); });
+        document.querySelector("#move-left").addEventListener("click", function () { move(-0.15, 0); });
+        document.querySelector("#move-right").addEventListener("click", function () { move(0.15, 0); });
+        document.querySelector("#move-forward").addEventListener("click", function () { move(0, -0.15); });
+        document.querySelector("#move-back").addEventListener("click", function () { move(0, 0.15); });
+        document.querySelector("#zoom-in").addEventListener("click", function () { zoom(1.15); });
+        document.querySelector("#zoom-out").addEventListener("click", function () { zoom(0.87); });
+        document.querySelector("#reset").addEventListener("click", resetTransform);
+
+        updateStatus();
+      })();
+    </script>
   </body>
 </html>
