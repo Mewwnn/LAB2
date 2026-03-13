@@ -10,92 +10,11 @@
       body {
         margin: 0;
         font-family: "Trebuchet MS", sans-serif;
-      }
-
-      #control-panel {
-        position: fixed;
-        top: 12px;
-        left: 12px;
-        z-index: 10;
-        width: 260px;
-        padding: 12px;
-        border-radius: 10px;
-        background: rgba(17, 24, 39, 0.85);
-        color: #f5f7fa;
-        backdrop-filter: blur(4px);
-      }
-
-      #control-panel h3 {
-        margin: 0 0 10px;
-        font-size: 16px;
-      }
-
-      #control-panel .row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        margin-bottom: 8px;
-      }
-
-      #control-panel button,
-      #control-panel select {
-        border: none;
-        border-radius: 6px;
-        padding: 8px;
-        font-size: 13px;
-        cursor: pointer;
-      }
-
-      #control-panel button {
-        background: #e2e8f0;
-        color: #1f2937;
-      }
-
-      #control-panel button:hover {
-        background: #cbd5e1;
-      }
-
-      #status {
-        margin-top: 6px;
-        font-size: 12px;
-        line-height: 1.3;
-        color: #d0d8e2;
+        overflow: hidden;
       }
     </style>
   </head>
   <body>
-    <div id="control-panel">
-      <h3>Point Cloud Controls</h3>
-      <select id="object-select">
-        <option value="sphere">Sphere</option>
-        <option value="sculpt">Sculpt</option>
-      </select>
-      <div class="row" style="margin-top: 8px;">
-        <button id="load-sphere">Load Sphere</button>
-        <button id="load-sculpt">Load Sculpt</button>
-      </div>
-      <div class="row">
-        <button id="rotate-left">Rotate Left</button>
-        <button id="rotate-right">Rotate Right</button>
-      </div>
-      <div class="row">
-        <button id="move-left">Move Left</button>
-        <button id="move-right">Move Right</button>
-      </div>
-      <div class="row">
-        <button id="move-forward">Move Forward</button>
-        <button id="move-back">Move Back</button>
-      </div>
-      <div class="row">
-        <button id="zoom-in">Zoom In</button>
-        <button id="zoom-out">Zoom Out</button>
-      </div>
-      <div class="row">
-        <button id="reset">Reset Transform</button>
-      </div>
-      <div id="status">Active object: Sphere</div>
-    </div>
-
     <a-scene>
       <a-assets>
         <img id="groundTexture" src="grass.avif">
@@ -107,7 +26,99 @@
       <a-light type="point" intensity="2" position="2 4 4"></a-light>
       <a-sky src="windows.jpg"  width="2048" theta-length="90"></a-sky>
       <!-- <a-sky height="2048" radius="30" src="#skyTexture" theta-length="90" width="2048"></a-sky> -->
-      <a-entity laser-controls line="color: red; opacity: 0.75"></a-entity>
+      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+      <a-entity laser-controls line="color: red; opacity: 0.75" raycaster="objects: .clickable"></a-entity>
+      <a-entity position="0 1.6 3">
+        <a-camera wasd-controls look-controls>
+          <a-cursor
+            raycaster="objects: .clickable"
+            color="#f8fafc"
+            fuse="false"
+            material="shader: flat; color: #f8fafc; opacity: 0.9">
+          </a-cursor>
+        </a-camera>
+      </a-entity>
+
+      <a-entity id="menu-console" position="-1.5 1.75 -1.35" rotation="0 28 0" scale="1.18 1.18 1.18">
+        <a-box
+          depth="0.12"
+          height="2.25"
+          width="2"
+          color="#0f172a"
+          material="opacity: 0.82; metalness: 0.25; roughness: 0.35">
+        </a-box>
+        <a-box
+          depth="0.04"
+          height="2.05"
+          width="2"
+          position="0 0 0.05"
+          color="#1e293b"
+          material="opacity: 0.92; metalness: 0.1; roughness: 0.25">
+        </a-box>
+
+        <a-text
+          value="3D Control Menu"
+          position="-0.58 0.92 0.13"
+          width="2.5"
+          color="#f8fafc"
+          shader="msdf">
+        </a-text>
+        <a-text
+          value="Click buttons to change the model"
+          position="-0.58 0.74 0.13"
+          width="2.3"
+          color="#bfdbfe"
+          shader="msdf">
+        </a-text>
+        <a-text
+          id="status-label"
+          value="Active object: Sphere"
+          position="-0.58 0.56 0.13"
+          width="2.4"
+          color="#86efac"
+          shader="msdf">
+        </a-text>
+
+        <a-plane class="clickable menu-button" data-action="load-sphere" color="#38bdf8" width="0.64" height="0.18" position="-0.36 0.3 0.13">
+          <a-text value="Sphere" align="center" position="0 0 0.01" width="1.5" color="#082f49" shader="msdf"></a-text>
+        </a-plane>
+        <a-plane class="clickable menu-button" data-action="load-sculpt" color="#334155" width="0.64" height="0.18" position="0.36 0.3 0.13">
+          <a-text value="Sculpt" align="center" position="0 0 0.01" width="1.5" color="#e2e8f0" shader="msdf"></a-text>
+        </a-plane>
+
+        <a-plane class="clickable menu-button" data-action="rotate-left" color="#475569" width="0.64" height="0.18" position="-0.36 0.02 0.13">
+          <a-text value="Rotate Left" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+        <a-plane class="clickable menu-button" data-action="rotate-right" color="#475569" width="0.64" height="0.18" position="0.36 0.02 0.13">
+          <a-text value="Rotate Right" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+
+        <a-plane class="clickable menu-button" data-action="move-left" color="#475569" width="0.64" height="0.18" position="-0.36 -0.26 0.13">
+          <a-text value="Move Left" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+        <a-plane class="clickable menu-button" data-action="move-right" color="#475569" width="0.64" height="0.18" position="0.36 -0.26 0.13">
+          <a-text value="Move Right" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+
+        <a-plane class="clickable menu-button" data-action="move-forward" color="#475569" width="0.64" height="0.18" position="-0.36 -0.54 0.13">
+          <a-text value="Forward" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+        <a-plane class="clickable menu-button" data-action="move-back" color="#475569" width="0.64" height="0.18" position="0.36 -0.54 0.13">
+          <a-text value="Back" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+
+        <a-plane class="clickable menu-button" data-action="zoom-in" color="#475569" width="0.64" height="0.18" position="-0.36 -0.82 0.13">
+          <a-text value="Zoom In" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+        <a-plane class="clickable menu-button" data-action="zoom-out" color="#475569" width="0.64" height="0.18" position="0.36 -0.82 0.13">
+          <a-text value="Zoom Out" align="center" position="0 0 0.01" width="1.3" color="#f8fafc" shader="msdf"></a-text>
+        </a-plane>
+
+        <a-plane class="clickable menu-button" data-action="reset" color="#f97316" width="1.36" height="0.2" position="0 -1.12 0.13">
+          <a-text value="Reset Transform" align="center" position="0 0 0.01" width="1.7" color="#431407" shader="msdf"></a-text>
+        </a-plane>
+      </a-entity>
+
       <a-pointcloud 
         id="sphere"
         scale="0.5 0.5 0.5" 
@@ -131,10 +142,19 @@
 
     <script>
       (function () {
+        const buttonDefaultColor = "#475569";
+        const buttonActiveColor = "#38bdf8";
+        const buttonHoverColor = "#93c5fd";
         const objects = {
           sphere: document.querySelector("#sphere"),
           sculpt: document.querySelector("#sculpt")
         };
+        const modelButtons = {
+          sphere: document.querySelector('[data-action="load-sphere"]'),
+          sculpt: document.querySelector('[data-action="load-sculpt"]')
+        };
+        const statusLabel = document.querySelector("#status-label");
+        const buttons = Array.prototype.slice.call(document.querySelectorAll(".menu-button"));
 
         const defaults = {
           sphere: {
@@ -157,8 +177,11 @@
 
         function updateStatus() {
           const label = activeKey === "sphere" ? "Sphere" : "Sculpt";
-          document.querySelector("#status").textContent = "Active object: " + label;
-          document.querySelector("#object-select").value = activeKey;
+          statusLabel.setAttribute("value", "Active object: " + label);
+          modelButtons.sphere.setAttribute("color", activeKey === "sphere" ? buttonActiveColor : "#334155");
+          modelButtons.sculpt.setAttribute("color", activeKey === "sculpt" ? buttonActiveColor : "#334155");
+          modelButtons.sphere.querySelector("a-text").setAttribute("color", activeKey === "sphere" ? "#082f49" : "#e2e8f0");
+          modelButtons.sculpt.querySelector("a-text").setAttribute("color", activeKey === "sculpt" ? "#082f49" : "#e2e8f0");
         }
 
         function setActiveObject(key) {
@@ -205,26 +228,55 @@
           obj.setAttribute("scale", defaults[activeKey].scale);
         }
 
-        document.querySelector("#object-select").addEventListener("change", function (event) {
-          setActiveObject(event.target.value);
-        });
+        const actions = {
+          "load-sphere": function () { setActiveObject("sphere"); },
+          "load-sculpt": function () { setActiveObject("sculpt"); },
+          "rotate-left": function () { rotateY(-15); },
+          "rotate-right": function () { rotateY(15); },
+          "move-left": function () { move(-0.15, 0); },
+          "move-right": function () { move(0.15, 0); },
+          "move-forward": function () { move(0, -0.15); },
+          "move-back": function () { move(0, 0.15); },
+          "zoom-in": function () { zoom(1.15); },
+          "zoom-out": function () { zoom(0.87); },
+          "reset": resetTransform
+        };
 
-        document.querySelector("#load-sphere").addEventListener("click", function () {
-          setActiveObject("sphere");
-        });
-        document.querySelector("#load-sculpt").addEventListener("click", function () {
-          setActiveObject("sculpt");
-        });
+        buttons.forEach(function (button) {
+          const action = button.getAttribute("data-action");
+          const label = button.querySelector("a-text");
 
-        document.querySelector("#rotate-left").addEventListener("click", function () { rotateY(-15); });
-        document.querySelector("#rotate-right").addEventListener("click", function () { rotateY(15); });
-        document.querySelector("#move-left").addEventListener("click", function () { move(-0.15, 0); });
-        document.querySelector("#move-right").addEventListener("click", function () { move(0.15, 0); });
-        document.querySelector("#move-forward").addEventListener("click", function () { move(0, -0.15); });
-        document.querySelector("#move-back").addEventListener("click", function () { move(0, 0.15); });
-        document.querySelector("#zoom-in").addEventListener("click", function () { zoom(1.15); });
-        document.querySelector("#zoom-out").addEventListener("click", function () { zoom(0.87); });
-        document.querySelector("#reset").addEventListener("click", resetTransform);
+          button.addEventListener("mouseenter", function () {
+            if (action !== "load-sphere" && action !== "load-sculpt") {
+              button.setAttribute("color", buttonHoverColor);
+            }
+            button.object3D.position.z = 0.16;
+            button.object3D.scale.set(1.03, 1.03, 1.03);
+            if (label) {
+              label.setAttribute("color", "#020617");
+            }
+          });
+
+          button.addEventListener("mouseleave", function () {
+            if (action === "load-sphere" || action === "load-sculpt") {
+              updateStatus();
+            } else {
+              button.setAttribute("color", buttonDefaultColor);
+              if (label) {
+                label.setAttribute("color", "#f8fafc");
+              }
+            }
+            button.object3D.position.z = 0.13;
+            button.object3D.scale.set(1, 1, 1);
+          });
+
+          button.addEventListener("click", function () {
+            button.object3D.position.z = 0.19;
+            if (actions[action]) {
+              actions[action]();
+            }
+          });
+        });
 
         updateStatus();
       })();
